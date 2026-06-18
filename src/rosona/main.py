@@ -5,6 +5,8 @@ import asyncio
 import aiohttp
 
 from rosona.core.config import Config
+from rosona.inventory.pseudo_service import PseudoInventoryService
+from rosona.inventory.pseudo_store import PseudoInventoryStore
 from rosona.inventory.rolimons import RolimonsCatalog
 from rosona.inventory.service import InventoryService
 from rosona.inventory.store import InventorySnapshotStore
@@ -37,6 +39,7 @@ async def run() -> None:
         last_seen = presence.estimate(user.id)
 
         rolimons = await RolimonsCatalog.fetch(session)
+
         inventory = InventoryService(
             client=roblox,
             rolimons=rolimons,
@@ -45,6 +48,13 @@ async def run() -> None:
 
         snapshot = await inventory.create_snapshot(user.id)
         delta = inventory.compare_latest(user.id)
+
+        pseudo_inventory = PseudoInventoryService(
+            store=PseudoInventoryStore(),
+        )
+
+        pseudo_items = pseudo_inventory.get_pseudo_inventory(user.id)
+        ownership_intervals = pseudo_inventory.get_ownership_intervals(user.id)
 
         print()
         print("User Lookup Test")
@@ -73,36 +83,61 @@ async def run() -> None:
         print("-" * 50)
         print(f"Captured At: {snapshot.captured_at}")
         print(f"Limited Items: {len(snapshot.items)}")
-        print(f"Total RAP: {snapshot.total_rap}")
-        print(f"Total Value: {snapshot.total_value}")
+        print(f"Total RAP: {snapshot.total_rap:,}")
+        print(f"Total Value: {snapshot.total_value:,}")
 
         if snapshot.items:
             print()
-            print("Items")
+            print("Top 10 Most Valuable Items")
             print("-" * 50)
-            for item in snapshot.items[:10]:
+            print(
+                f"Showing top 10 of "
+                f"{len(snapshot.items)} limited items"
+            )
+
+            top_items = sorted(
+                snapshot.items,
+                key=lambda item: item.value,
+                reverse=True,
+            )[:10]
+
+            for item in top_items:
                 print(
                     f"{item.name} | "
-                    f"Asset {item.asset_id} | "
+                    f"Value {item.value:,} | "
+                    f"RAP {item.rap:,} | "
                     f"UAID {item.uaid} | "
-                    f"Serial {item.serial} | "
-                    f"RAP {item.rap} | "
-                    f"Value {item.value}"
+                    f"Serial {item.serial}"
                 )
 
         if delta is not None:
             print()
             print("Inventory Delta")
             print("-" * 50)
-            print(f"RAP Change: {delta.rap_change}")
-            print(f"Value Change: {delta.value_change}")
-            print(f"Ownership RAP Flow: {delta.ownership_rap_flow}")
-            print(f"Ownership Value Flow: {delta.ownership_value_flow}")
-            print(f"Market RAP Movement: {delta.market_rap_movement}")
-            print(f"Market Value Movement: {delta.market_value_movement}")
+            print(f"RAP Change: {delta.rap_change:+,}")
+            print(f"Value Change: {delta.value_change:+,}")
+            print(f"Ownership RAP Flow: {delta.ownership_rap_flow:+,}")
+            print(f"Ownership Value Flow: {delta.ownership_value_flow:+,}")
+            print(f"Market RAP Movement: {delta.market_rap_movement:+,}")
+            print(f"Market Value Movement: {delta.market_value_movement:+,}")
             print(f"Added Items: {len(delta.added_items)}")
             print(f"Removed Items: {len(delta.removed_items)}")
             print(f"Retained Items: {len(delta.retained_items)}")
+
+        print()
+        print("Pseudo Inventory Evidence")
+        print("-" * 50)
+        print(f"Observed Items: {len(pseudo_items)}")
+        print(f"Ownership Intervals: {len(ownership_intervals)}")
+
+        for item in pseudo_items[:10]:
+            print(
+                f"Asset {item.asset_id} | "
+                f"UAID {item.uaid} | "
+                f"Source {item.source} | "
+                f"Confidence {item.confidence} | "
+                f"Observed {item.observed_at}"
+            )
 
 
 def main() -> None:
