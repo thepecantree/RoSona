@@ -145,7 +145,7 @@ async def run() -> None:
         print()
         print("Pseudo Inventory Evidence")
         print("-" * 50)
-        print(f"Observed Items: {len(pseudo_items)}")
+        print(f"Observed Reigns: {len(pseudo_items)}")
         print(f"Ownership Intervals: {len(ownership_intervals)}")
 
         for item in pseudo_items[:10]:
@@ -154,7 +154,9 @@ async def run() -> None:
                 f"UAID {item.uaid} | "
                 f"Source {item.source} | "
                 f"Confidence {item.confidence} | "
-                f"Observed {item.observed_at}"
+                f"First {item.first_observed_at} | "
+                f"Last {item.last_observed_at} | "
+                f"Status {item.status}"
             )
 
 

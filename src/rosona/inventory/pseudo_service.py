@@ -16,14 +16,19 @@ class PseudoInventoryService:
         asset_id: int,
         uaid: int | None = None,
     ) -> PseudoInventoryItem:
+        observed_at = datetime.now(UTC).isoformat()
+
         item = PseudoInventoryItem(
             user_id=user_id,
             asset_id=asset_id,
             uaid=uaid,
-            observed_at=datetime.now(UTC).isoformat(),
+            first_observed_at=observed_at,
+            last_observed_at=observed_at,
             source="wearing_avatar",
             confidence="confirmed_at_observation",
             evidence="Limited item was observed being worn by the user.",
+            status="open",
+            ended_reason="currently_open",
         )
 
         self.store.add_item(item)
@@ -35,14 +40,19 @@ class PseudoInventoryService:
         asset_id: int,
         uaid: int | None = None,
     ) -> PseudoInventoryItem:
+        observed_at = datetime.now(UTC).isoformat()
+
         item = PseudoInventoryItem(
             user_id=user_id,
             asset_id=asset_id,
             uaid=uaid,
-            observed_at=datetime.now(UTC).isoformat(),
+            first_observed_at=observed_at,
+            last_observed_at=observed_at,
             source="profile_collection",
             confidence="strong_inference",
             evidence="Limited item was observed in the user's profile collection.",
+            status="open",
+            ended_reason="currently_open",
         )
 
         self.store.add_item(item)

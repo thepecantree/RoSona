@@ -19,15 +19,35 @@ OwnershipConfidence = Literal[
 ]
 
 
+OwnershipReignStatus = Literal[
+    "open",
+    "closed_confirmed_absent",
+    "closed_presumed_absent",
+]
+
+
+OwnershipEndedReason = Literal[
+    "currently_open",
+    "confirmed_absent",
+    "presumed_absent",
+]
+
+
 @dataclass(frozen=True, slots=True)
 class PseudoInventoryItem:
     user_id: int
     asset_id: int
     uaid: int | None
-    observed_at: str
+
+    first_observed_at: str
+    last_observed_at: str
+
     source: PseudoInventorySource
     confidence: OwnershipConfidence
     evidence: str
+
+    status: OwnershipReignStatus = "open"
+    ended_reason: OwnershipEndedReason = "currently_open"
 
 
 @dataclass(frozen=True, slots=True)
