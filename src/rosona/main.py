@@ -44,6 +44,7 @@ async def run() -> None:
         )
 
         snapshot = await inventory.create_snapshot(user.id)
+        delta = inventory.compare_latest(user.id)
 
         print()
         print("User Lookup Test")
@@ -88,6 +89,20 @@ async def run() -> None:
                     f"RAP {item.rap} | "
                     f"Value {item.value}"
                 )
+
+        if delta is not None:
+            print()
+            print("Inventory Delta")
+            print("-" * 50)
+            print(f"RAP Change: {delta.rap_change}")
+            print(f"Value Change: {delta.value_change}")
+            print(f"Ownership RAP Flow: {delta.ownership_rap_flow}")
+            print(f"Ownership Value Flow: {delta.ownership_value_flow}")
+            print(f"Market RAP Movement: {delta.market_rap_movement}")
+            print(f"Market Value Movement: {delta.market_value_movement}")
+            print(f"Added Items: {len(delta.added_items)}")
+            print(f"Removed Items: {len(delta.removed_items)}")
+            print(f"Retained Items: {len(delta.retained_items)}")
 
 
 def main() -> None:

@@ -6,9 +6,26 @@ from rosona.inventory.models import InventoryItem, InventorySnapshot
 from rosona.inventory.rolimons import RolimonsCatalog
 from rosona.inventory.store import InventorySnapshotStore
 from rosona.roblox.client import RobloxClient
+from rosona.inventory.delta import InventoryDelta, compare_snapshots
 
 
 class InventoryService:
+    def compare_latest(
+        self,
+        user_id: int,
+    ) -> InventoryDelta | None:
+        history = self.get_history(user_id)
+
+        if len(history) < 2:
+            return None
+
+        old_snapshot = history[-2]
+        new_snapshot = history[-1]
+
+        return compare_snapshots(
+            old_snapshot,
+            new_snapshot,
+        )
     def __init__(
         self,
         client: RobloxClient,
