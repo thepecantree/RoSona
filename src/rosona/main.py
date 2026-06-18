@@ -5,6 +5,9 @@ import asyncio
 import aiohttp
 
 from rosona.core.config import Config
+from rosona.inventory.rolimons import RolimonsCatalog
+from rosona.inventory.service import InventoryService
+from rosona.inventory.store import InventorySnapshotStore
 from rosona.presence.service import PresenceService
 from rosona.presence.store import PresenceStore
 from rosona.roblox.client import RobloxClient
@@ -33,6 +36,15 @@ async def run() -> None:
         await presence.observe_now(user.id)
         last_seen = presence.estimate(user.id)
 
+        rolimons = await RolimonsCatalog.fetch(session)
+        inventory = InventoryService(
+            client=roblox,
+            rolimons=rolimons,
+            store=InventorySnapshotStore(),
+        )
+
+        snapshot = await inventory.create_snapshot(user.id)
+
         print()
         print("User Lookup Test")
         print("-" * 50)
@@ -54,6 +66,28 @@ async def run() -> None:
         print(f"Source: {last_seen.best_estimate.source}")
         print(f"Confidence: {last_seen.best_estimate.confidence}")
         print(f"Evidence: {last_seen.best_estimate.evidence}")
+
+        print()
+        print("Inventory Snapshot")
+        print("-" * 50)
+        print(f"Captured At: {snapshot.captured_at}")
+        print(f"Limited Items: {len(snapshot.items)}")
+        print(f"Total RAP: {snapshot.total_rap}")
+        print(f"Total Value: {snapshot.total_value}")
+
+        if snapshot.items:
+            print()
+            print("Items")
+            print("-" * 50)
+            for item in snapshot.items[:10]:
+                print(
+                    f"{item.name} | "
+                    f"Asset {item.asset_id} | "
+                    f"UAID {item.uaid} | "
+                    f"Serial {item.serial} | "
+                    f"RAP {item.rap} | "
+                    f"Value {item.value}"
+                )
 
 
 def main() -> None:

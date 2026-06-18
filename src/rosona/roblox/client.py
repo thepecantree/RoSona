@@ -117,7 +117,27 @@ class RobloxClient:
                 break
 
         return replace(user, previous_usernames=names)
+    
+    async def get_limited_inventory(self, user_id: int) -> list[dict]:
+        items: list[dict] = []
+        cursor = ""
 
+        while True:
+            path = (
+                f"v1/users/{user_id}/assets/collectibles"
+                f"?limit=100&sortOrder=Asc&cursor={cursor}"
+            )
+
+            data = await self.request("GET", "inventory", path)
+
+            items.extend(data.get("data", []))
+
+            cursor = data.get("nextPageCursor")
+            if not cursor:
+                break
+
+        return items
+    
     async def populate_last_online(self, user: RobloxUser) -> RobloxUser:
         try:
             data = await self.request(
