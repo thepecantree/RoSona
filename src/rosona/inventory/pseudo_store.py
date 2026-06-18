@@ -10,6 +10,25 @@ from rosona.inventory.pseudo import (
 
 
 class PseudoInventoryStore:
+    def close_open_reigns_for_publicly_confirmed_assets(
+        self,
+        user_id: int,
+        asset_ids: set[int],
+        closed_at: str,
+    ) -> None:
+        data = self.load()
+
+        for item in data["items"]:
+            if (
+                item["user_id"] == user_id
+                and item["asset_id"] in asset_ids
+                and item.get("status", "open") == "open"
+            ):
+                item["last_observed_at"] = closed_at
+                item["status"] = "closed_confirmed_absent"
+                item["ended_reason"] = "confirmed_absent"
+
+        self.save(data)
     def __init__(
         self,
         path: str = "data/pseudo_inventory.json",

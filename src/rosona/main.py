@@ -60,7 +60,21 @@ async def run() -> None:
         snapshot = await inventory.create_snapshot(user.id)
         delta = inventory.compare_latest(user.id)
 
-        worn_limiteds = await avatar_scanner.scan_worn_limiteds(user.id)
+        public_asset_ids = {
+            item.asset_id
+            for item in snapshot.items
+        }
+
+        pseudo_inventory.close_reigns_covered_by_public_inventory(
+            user_id=user.id,
+            asset_ids=public_asset_ids,
+            closed_at=snapshot.captured_at,
+        )
+
+        worn_limiteds = await avatar_scanner.scan_worn_limiteds(
+        user.id,
+        public_snapshot=snapshot,
+        )
 
         pseudo_items = pseudo_inventory.get_pseudo_inventory(user.id)
         ownership_intervals = pseudo_inventory.get_ownership_intervals(user.id)

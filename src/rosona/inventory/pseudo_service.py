@@ -7,6 +7,19 @@ from rosona.inventory.pseudo_store import PseudoInventoryStore
 
 
 class PseudoInventoryService:
+    
+    def close_reigns_covered_by_public_inventory(
+        self,
+        user_id: int,
+        asset_ids: set[int],
+        closed_at: str,
+    ) -> None:
+        self.store.close_open_reigns_for_publicly_confirmed_assets(
+            user_id=user_id,
+            asset_ids=asset_ids,
+            closed_at=closed_at,
+        )
+
     def __init__(self, store: PseudoInventoryStore):
         self.store = store
 
