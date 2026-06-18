@@ -23,12 +23,11 @@ class InventorySnapshotStore:
                 InventorySnapshot(
                     user_id=snapshot["user_id"],
                     captured_at=snapshot["captured_at"],
+                    visibility=snapshot.get("visibility", "public"),
+                    retention=snapshot.get("retention", "temporary"),
                     total_rap=snapshot["total_rap"],
                     total_value=snapshot["total_value"],
-                    items=[
-                        InventoryItem(**item)
-                        for item in snapshot["items"]
-                    ],
+                    items=[InventoryItem(**item) for item in snapshot["items"]],
                 )
                 for snapshot in user_snapshots
             ]
@@ -41,6 +40,8 @@ class InventorySnapshotStore:
                 {
                     "user_id": snapshot.user_id,
                     "captured_at": snapshot.captured_at,
+                    "visibility": snapshot.visibility,
+                    "retention": snapshot.retention,
                     "total_rap": snapshot.total_rap,
                     "total_value": snapshot.total_value,
                     "items": [
@@ -60,10 +61,7 @@ class InventorySnapshotStore:
             for user_id, user_snapshots in snapshots.items()
         }
 
-        self.path.write_text(
-            json.dumps(raw, indent=2, sort_keys=True),
-            encoding="utf-8",
-        )
+        self.path.write_text(json.dumps(raw, indent=2, sort_keys=True), encoding="utf-8")
 
     def add_snapshot(self, snapshot: InventorySnapshot) -> None:
         snapshots = self.load()

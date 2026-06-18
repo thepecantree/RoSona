@@ -19,7 +19,11 @@ class InventoryService:
         self.rolimons = rolimons
         self.store = store
 
-    async def create_snapshot(self, user_id: int) -> InventorySnapshot:
+    async def create_snapshot(
+        self,
+        user_id: int,
+        visibility: str = "public",
+    ) -> InventorySnapshot:
         raw_items = await self.client.get_limited_inventory(user_id)
 
         items: list[InventoryItem] = []
@@ -45,9 +49,13 @@ class InventoryService:
                 )
             )
 
+        retention = "permanent" if visibility != "public" else "temporary"
+
         snapshot = InventorySnapshot(
             user_id=user_id,
             captured_at=datetime.now(UTC).isoformat(),
+            visibility=visibility,
+            retention=retention,
             total_rap=sum(item.rap for item in items),
             total_value=sum(item.value for item in items),
             items=items,
