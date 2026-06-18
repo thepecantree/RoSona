@@ -5,6 +5,7 @@ import asyncio
 import aiohttp
 
 from rosona.core.config import Config
+from rosona.inventory.avatar_scanner import AvatarLimitedScanner
 from rosona.inventory.pseudo_service import PseudoInventoryService
 from rosona.inventory.pseudo_store import PseudoInventoryStore
 from rosona.inventory.rolimons import RolimonsCatalog
@@ -40,6 +41,16 @@ async def run() -> None:
 
         rolimons = await RolimonsCatalog.fetch(session)
 
+        pseudo_inventory = PseudoInventoryService(
+            store=PseudoInventoryStore(),
+        )
+
+        avatar_scanner = AvatarLimitedScanner(
+            client=roblox,
+            rolimons=rolimons,
+            pseudo_inventory=pseudo_inventory,
+        )
+
         inventory = InventoryService(
             client=roblox,
             rolimons=rolimons,
@@ -49,9 +60,7 @@ async def run() -> None:
         snapshot = await inventory.create_snapshot(user.id)
         delta = inventory.compare_latest(user.id)
 
-        pseudo_inventory = PseudoInventoryService(
-            store=PseudoInventoryStore(),
-        )
+        worn_limiteds = await avatar_scanner.scan_worn_limiteds(user.id)
 
         pseudo_items = pseudo_inventory.get_pseudo_inventory(user.id)
         ownership_intervals = pseudo_inventory.get_ownership_intervals(user.id)
@@ -90,10 +99,7 @@ async def run() -> None:
             print()
             print("Top 10 Most Valuable Items")
             print("-" * 50)
-            print(
-                f"Showing top 10 of "
-                f"{len(snapshot.items)} limited items"
-            )
+            print(f"Showing top 10 of {len(snapshot.items)} limited items")
 
             top_items = sorted(
                 snapshot.items,
@@ -123,6 +129,18 @@ async def run() -> None:
             print(f"Added Items: {len(delta.added_items)}")
             print(f"Removed Items: {len(delta.removed_items)}")
             print(f"Retained Items: {len(delta.retained_items)}")
+
+        print()
+        print("Worn Limited Scan")
+        print("-" * 50)
+        print(f"Detected Limiteds: {len(worn_limiteds)}")
+
+        for item in worn_limiteds[:10]:
+            print(
+                f"Asset {item.asset_id} | "
+                f"Source {item.source} | "
+                f"Confidence {item.confidence}"
+            )
 
         print()
         print("Pseudo Inventory Evidence")

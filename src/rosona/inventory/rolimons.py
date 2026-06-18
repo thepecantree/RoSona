@@ -19,6 +19,9 @@ class RolimonsCatalog:
         item = self.items.get(str(asset_id))
         return item[0] if item else "Unknown Item"
 
+    def is_limited(self, asset_id: int) -> bool:
+        return str(asset_id) in self.items
+
     def get_item_value(self, asset_id: int) -> int:
         item = self.items.get(str(asset_id))
         if not item:

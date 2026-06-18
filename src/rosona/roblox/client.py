@@ -137,7 +137,16 @@ class RobloxClient:
                 break
 
         return items
-    
+
+    async def get_avatar_assets(self, user_id: int) -> list[dict]:
+        data = await self.request(
+            "GET",
+            "avatar",
+            f"v1/users/{user_id}/avatar",
+        )
+
+        return data.get("assets", [])
+
     async def populate_last_online(self, user: RobloxUser) -> RobloxUser:
         try:
             data = await self.request(
