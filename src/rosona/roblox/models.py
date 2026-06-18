@@ -17,6 +17,7 @@ class RobloxUser:
     last_online: str | None = None
     headshot: str | None = None
     avatar: str | None = None
+    last_seen_source: str | None = None
 
     @property
     def profile_url(self) -> str:
