@@ -8,6 +8,7 @@ from rosona.roblox.errors import (
     RobloxServerError,
     RobloxUnauthorized,
 )
+from rosona.roblox.models import RobloxUser
 
 
 class RobloxClient:
@@ -23,12 +24,7 @@ class RobloxClient:
     ) -> dict:
         url = f"https://{subdomain}.roblox.com/{path}"
 
-        async with self.session.request(
-            method,
-            url,
-            **kwargs,
-        ) as response:
-
+        async with self.session.request(method, url, **kwargs) as response:
             if response.status == 404:
                 raise RobloxNotFound(url)
 
@@ -43,11 +39,7 @@ class RobloxClient:
 
             return await response.json()
 
-    async def username_to_user_id(
-        self,
-        username: str,
-    ) -> int:
-
+    async def get_user_by_username(self, username: str) -> RobloxUser:
         data = await self.request(
             "POST",
             "users",
@@ -63,4 +55,11 @@ class RobloxClient:
         if not users:
             raise RobloxNotFound(username)
 
-        return users[0]["id"]
+        user = users[0]
+
+        return RobloxUser(
+            id=user["id"],
+            username=user["name"],
+            display_name=user["displayName"],
+            verified=user["hasVerifiedBadge"],
+        )

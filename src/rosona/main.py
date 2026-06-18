@@ -16,9 +16,9 @@ async def run() -> None:
     async with aiohttp.ClientSession() as session:
         roblox = RobloxClient(session)
 
-        user_id = await roblox.username_to_user_id("Builderman")
+        user = await roblox.get_user_by_username("Builderman")
 
-        print(f"Builderman -> {user_id}")
+        print(f"{user.username} ({user.display_name}) -> {user.id}")
 
 
 def main() -> None:
