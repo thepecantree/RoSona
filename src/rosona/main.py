@@ -18,9 +18,8 @@ from rosona.roblox.users import UserService
 from rosona.timeline.history import HistoryService
 from rosona.timeline.service import TimelineService
 from rosona.timeline.store import TimelineStore
-from rosona.timeline.test_report import (
-    print_asset_report,
-)
+from rosona.vetting.report import VettingReportBuilder
+from rosona.vetting.service import VettingService
 
 
 async def run() -> None:
@@ -77,6 +76,11 @@ async def run() -> None:
             timeline_store.append(timeline_events)
 
         user_timeline_events = history.user_history(user.id)
+
+        vetting_report = VettingService().evaluate_delta(
+            user_id=user.id,
+            delta=delta,
+        )
 
         public_asset_ids = {
             item.asset_id
@@ -206,7 +210,10 @@ async def run() -> None:
                 f"{event.source}"
             )
 
-        print_asset_report(1029025)
+        print()
+        print("Vetting Report")
+        print("-" * 50)
+        print(VettingReportBuilder().build(vetting_report))
 
 
 def main() -> None:
