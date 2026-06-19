@@ -16,6 +16,7 @@ from rosona.presence.store import PresenceStore
 from rosona.roblox.client import RobloxClient
 from rosona.roblox.users import UserService
 from rosona.timeline.history import HistoryService
+from rosona.timeline.interval_builder import OwnershipIntervalBuilder
 from rosona.timeline.service import TimelineService
 from rosona.timeline.store import TimelineStore
 from rosona.vetting.report import VettingReportBuilder
@@ -68,6 +69,7 @@ async def run() -> None:
         timeline_store = TimelineStore()
         timeline_service = TimelineService()
         history = HistoryService(timeline_store)
+        interval_builder = OwnershipIntervalBuilder()
 
         timeline_events = []
 
@@ -100,6 +102,19 @@ async def run() -> None:
 
         pseudo_items = pseudo_inventory.get_pseudo_inventory(user.id)
         ownership_intervals = pseudo_inventory.get_ownership_intervals(user.id)
+
+        event_intervals = interval_builder.from_events(
+            user_timeline_events
+        )
+
+        pseudo_intervals = interval_builder.from_pseudo_reigns(
+            pseudo_items
+        )
+
+        all_intervals = [
+            *event_intervals,
+            *pseudo_intervals,
+        ]
 
         print()
         print("User Lookup Test")
@@ -208,6 +223,23 @@ async def run() -> None:
                 f"Asset {event.asset_id} | "
                 f"UAID {event.uaid} | "
                 f"{event.source}"
+            )
+
+        print()
+        print("Ownership Intervals")
+        print("-" * 50)
+        print(f"Event Intervals: {len(event_intervals)}")
+        print(f"Pseudo Intervals: {len(pseudo_intervals)}")
+        print(f"Total Intervals: {len(all_intervals)}")
+
+        for interval in all_intervals[:10]:
+            print(
+                f"Asset {interval.asset_id} | "
+                f"UAID {interval.uaid} | "
+                f"Start {interval.started_at} | "
+                f"End {interval.ended_at or 'Present'} | "
+                f"Source {interval.source} | "
+                f"Status {interval.status}"
             )
 
         print()
