@@ -15,6 +15,9 @@ from rosona.presence.service import PresenceService
 from rosona.presence.store import PresenceStore
 from rosona.roblox.client import RobloxClient
 from rosona.roblox.users import UserService
+from rosona.timeline.history import HistoryService
+from rosona.timeline.service import TimelineService
+from rosona.timeline.store import TimelineStore
 
 
 async def run() -> None:
@@ -60,6 +63,18 @@ async def run() -> None:
         snapshot = await inventory.create_snapshot(user.id)
         delta = inventory.compare_latest(user.id)
 
+        timeline_store = TimelineStore()
+        timeline_service = TimelineService()
+        history = HistoryService(timeline_store)
+
+        timeline_events = []
+
+        if delta is not None:
+            timeline_events = timeline_service.events_from_delta(delta)
+            timeline_store.append(timeline_events)
+
+        user_timeline_events = history.user_history(user.id)
+
         public_asset_ids = {
             item.asset_id
             for item in snapshot.items
@@ -72,8 +87,8 @@ async def run() -> None:
         )
 
         worn_limiteds = await avatar_scanner.scan_worn_limiteds(
-        user.id,
-        public_snapshot=snapshot,
+            user.id,
+            public_snapshot=snapshot,
         )
 
         pseudo_items = pseudo_inventory.get_pseudo_inventory(user.id)
@@ -171,6 +186,21 @@ async def run() -> None:
                 f"First {item.first_observed_at} | "
                 f"Last {item.last_observed_at} | "
                 f"Status {item.status}"
+            )
+
+        print()
+        print("Timeline Events")
+        print("-" * 50)
+        print(f"New Events This Run: {len(timeline_events)}")
+        print(f"Stored Events For User: {len(user_timeline_events)}")
+
+        for event in user_timeline_events[-10:]:
+            print(
+                f"{event.timestamp} | "
+                f"{event.event_type} | "
+                f"Asset {event.asset_id} | "
+                f"UAID {event.uaid} | "
+                f"{event.source}"
             )
 
 

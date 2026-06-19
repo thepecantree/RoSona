@@ -14,8 +14,21 @@ from rosona.roblox.models import RobloxUser
 
 
 class RobloxClient:
+
     def __init__(self, session: aiohttp.ClientSession):
         self.session = session
+    
+    async def get_user_collections(self, user_id: int) -> list[dict]:
+        try:
+            data = await self.request(
+                "GET",
+                "inventory",
+                f"v1/users/{user_id}/collections/items?limit=100",
+            )
+        except RobloxNotFound:
+            return []
+
+        return data.get("data", [])
 
     async def request(self, method: str, subdomain: str, path: str, **kwargs) -> dict:
         url = f"https://{subdomain}.roblox.com/{path}"
