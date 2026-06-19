@@ -18,6 +18,9 @@ from rosona.roblox.users import UserService
 from rosona.timeline.history import HistoryService
 from rosona.timeline.service import TimelineService
 from rosona.timeline.store import TimelineStore
+from rosona.timeline.test_report import (
+    print_asset_report,
+)
 
 
 async def run() -> None:
@@ -202,6 +205,8 @@ async def run() -> None:
                 f"UAID {event.uaid} | "
                 f"{event.source}"
             )
+
+        print_asset_report(1029025)
 
 
 def main() -> None:
